@@ -1,37 +1,56 @@
 const { response } = require('express');
+const Event = require('../models/Event');
 
 const getEvents = async (req, res = response) => {
-  const { uid, name } = req;
+  const events = await Event.find().populate('user', 'name');
 
   res.json({
     ok: true,
-    message: 'getEvents',
-    uid,
-    name,
+    events,
   });
 };
 
-const createEvent = (req, res = response) => {
-  const { uid, name } = req;
+const createEvent = async (req, res = response) => {
+  const event = new Event(req.body);
 
-  res.json({
-    ok: true,
-    message: 'createEvent',
-    uid,
-    name,
-  });
+  try {
+    event.user = req.uid;
+
+    const savedEvent = await event.save();
+
+    res.status(201).json({
+      ok: true,
+      message: 'Event saved correctly',
+      event: savedEvent,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      ok: false,
+      message: 'DB save error',
+    });
+  }
 };
 
-const updateEvent = (req, res = response) => {
-  const { uid, name } = req;
-  const { id } = req.params;
+const updateEvent = async (req, res = response) => {
+  const eventId = req.params.id;
+
+  try {
+    const evento = await Event.findById(eventId);
+
+    console.log(evento);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      ok: false,
+      message: 'Internal server error',
+    });
+  }
 
   res.json({
     ok: true,
     message: 'updateEvent',
-    uid,
-    name,
-    eventId: id,
+    eventId,
   });
 };
 
